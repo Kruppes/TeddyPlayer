@@ -1,0 +1,3487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeddyPlayer</title>
+    <style>
+        /* CSS Custom Properties - Amber/Gold Theme */
+        :root {
+            --color-bg: #0f0f17;
+            --color-surface: #1a1a24;
+            --color-card: #22222e;
+            --color-card-hover: #2a2a38;
+            --color-input: #16161e;
+            --color-border: #333340;
+            --color-border-light: #444455;
+            --color-text: #f0f0f0;
+            --color-text-muted: #888899;
+            --color-text-dim: #555566;
+            --color-primary: #f59e0b;
+            --color-primary-hover: #d97706;
+            --color-primary-dim: #b45309;
+            --color-success: #4ade80;
+            --color-success-bg: rgba(74, 222, 128, 0.1);
+            --color-error: #f87171;
+            --color-error-bg: rgba(248, 113, 113, 0.1);
+            --color-warning: #facc15;
+            --color-warning-bg: rgba(250, 204, 21, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--color-bg);
+            color: var(--color-text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--color-primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 16px;
+        }
+        .header-spacer { flex: 1; }
+        .header-device {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-device label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+        .header-device select {
+            background: var(--color-input);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            min-width: 180px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .icon-btn {
+            background: var(--color-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        .icon-btn:hover {
+            background: var(--color-card-hover);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-success);
+        }
+        .status-dot.offline { background: var(--color-error); }
+        .status-dot.loading { background: var(--color-warning); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Main content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Alert container */
+        .alert-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+        .alert.success { background: var(--color-success-bg); border: 1px solid var(--color-success); color: var(--color-success); }
+        .alert.error { background: var(--color-error-bg); border: 1px solid var(--color-error); color: var(--color-error); }
+        .alert.warning { background: var(--color-warning-bg); border: 1px solid var(--color-warning); color: var(--color-warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Search bar and controls */
+        .library-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+        .search-input {
+            flex: 1;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 14px 18px;
+            border-radius: var(--radius-lg);
+            font-size: 15px;
+            transition: border-color var(--transition-fast);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .search-input::placeholder {
+            color: var(--color-text-dim);
+        }
+        .toggle-btn {
+            background: var(--color-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+        .toggle-btn:hover {
+            background: var(--color-card-hover);
+            color: var(--color-text);
+        }
+        .toggle-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #000;
+        }
+
+        /* Cover Wall Grid - Max 5 columns, larger covers */
+        .cover-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        @media (min-width: 1300px) {
+            .cover-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        .cover-card {
+            background: var(--color-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+            position: relative;
+        }
+        .cover-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color-primary);
+        }
+        .cover-card.hidden-item {
+            opacity: 0.5;
+        }
+        .cover-card.hidden-item:hover {
+            opacity: 0.8;
+        }
+        .cover-image {
+            aspect-ratio: 1;
+            width: 100%;
+            object-fit: cover;
+            background: var(--color-surface);
+        }
+        .cover-image-placeholder {
+            aspect-ratio: 1;
+            width: 100%;
+            background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-card) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--color-text-dim);
+        }
+        .cover-info {
+            padding: 12px 14px;
+        }
+        .cover-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .cover-subtitle {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cover-card:hover .cover-title {
+            color: var(--color-primary);
+        }
+        /* Action buttons on cover */
+        .cover-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            display: flex;
+            gap: 6px;
+        }
+        .cover-card:hover .cover-actions {
+            opacity: 1;
+        }
+        .cover-info-btn, .cover-hide-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+        }
+        .cover-info-btn:hover {
+            background: rgba(0,0,0,0.9);
+            color: var(--color-primary);
+        }
+        .cover-hide-btn:hover {
+            background: rgba(0,0,0,0.9);
+            color: var(--color-error);
+        }
+        .cover-card.hidden-item .cover-hide-btn {
+            color: var(--color-success);
+        }
+        .cover-card.hidden-item .cover-hide-btn:hover {
+            color: var(--color-success);
+        }
+
+        /* Modal base styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .modal-content {
+            position: relative;
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            border: 1px solid var(--color-border);
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            transition: transform var(--transition-normal);
+        }
+        .modal.open .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        .modal-close:hover { color: var(--color-text); }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--color-input);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .form-hint {
+            font-size: 11px;
+            color: var(--color-text-dim);
+            margin-top: 4px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .btn-primary {
+            background: var(--color-primary);
+            color: #000;
+        }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-secondary {
+            background: var(--color-card);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+        .btn-secondary:hover { background: var(--color-card-hover); }
+        .btn-danger {
+            background: var(--color-error-bg);
+            color: var(--color-error);
+            border: 1px solid var(--color-error);
+        }
+        .btn-danger:hover { background: var(--color-error); color: #000; }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Device list in settings */
+        .device-list {
+            margin-top: 20px;
+        }
+        .device-section {
+            margin-bottom: 16px;
+        }
+        .device-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-dim);
+            margin-bottom: 8px;
+        }
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 6px;
+        }
+        .device-item:hover {
+            background: var(--color-card-hover);
+        }
+        .device-star {
+            color: var(--color-text-dim);
+            cursor: pointer;
+            font-size: 18px;
+            transition: color var(--transition-fast);
+        }
+        .device-star:hover { color: var(--color-warning); }
+        .device-star.starred { color: var(--color-warning); }
+        .device-name {
+            flex: 1;
+            font-size: 13px;
+        }
+        .device-ip {
+            font-size: 11px;
+            color: var(--color-text-dim);
+            font-family: monospace;
+        }
+        .device-remove {
+            color: var(--color-text-dim);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+        .device-item:hover .device-remove { opacity: 1; }
+        .device-remove:hover { color: var(--color-error); }
+
+        /* Reader list in readers modal */
+        .reader-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+        .reader-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .reader-status.online { background: var(--color-success); }
+        .reader-status.offline { background: var(--color-text-dim); }
+        .reader-info { flex: 1; }
+        .reader-name {
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .reader-name:hover { color: var(--color-primary); }
+        .reader-meta {
+            font-size: 11px;
+            color: var(--color-text-dim);
+            margin-top: 2px;
+        }
+        .reader-device-select {
+            font-size: 12px;
+            padding: 6px 10px;
+            min-width: 150px;
+        }
+
+        /* Recently Played section */
+        .recently-played-section {
+            margin-bottom: 28px;
+        }
+        .recently-played-grid {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-border) transparent;
+        }
+        .recently-played-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+        .recently-played-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .recently-played-grid::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 3px;
+        }
+        .recent-card {
+            flex-shrink: 0;
+            width: 120px;
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: 2px solid transparent;
+        }
+        .recent-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-3px);
+        }
+        .recent-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            background: var(--color-surface);
+        }
+        .recent-card .recent-placeholder {
+            width: 120px;
+            height: 120px;
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--color-text-dim);
+        }
+        .recent-card .recent-title {
+            padding: 8px 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Now Playing section */
+        .now-playing-section {
+            margin-bottom: 28px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+            font-weight: 600;
+        }
+        .section-count {
+            background: var(--color-card);
+            color: var(--color-text-dim);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+        .now-playing-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .stream-card {
+            position: relative;
+            background: var(--color-card);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-left: 4px solid var(--color-success);
+        }
+        .stream-card.encoding {
+            border-left-color: var(--color-warning);
+        }
+        .stream-card.error {
+            border-left-color: var(--color-error);
+        }
+        .stream-cover {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            background: var(--color-surface);
+            flex-shrink: 0;
+        }
+        .stream-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .stream-title {
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stream-meta {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+        }
+        .stream-device {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--color-surface);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+        .stream-encoding {
+            margin-top: 10px;
+        }
+        .encoding-label {
+            font-size: 12px;
+            color: var(--color-warning);
+            display: block;
+            margin-bottom: 6px;
+        }
+        .encoding-tracks {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            display: block;
+            margin-top: 4px;
+        }
+        .stream-progress {
+            background: var(--color-surface);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .stream-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-warning) 0%, var(--color-primary) 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+        .stream-error {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--color-error);
+        }
+
+        /* Uploads Section */
+        .uploads-section {
+            margin-bottom: 24px;
+        }
+        .uploads-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .upload-card {
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            border: 2px solid var(--color-primary);
+        }
+        .upload-card.complete {
+            border-color: var(--color-success);
+        }
+        .upload-card.error {
+            border-color: var(--color-error);
+        }
+        .upload-error-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .retry-btn, .dismiss-btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        .retry-btn {
+            background: var(--color-primary);
+            color: white;
+        }
+        .retry-btn:hover {
+            background: #2980b9;
+        }
+        .dismiss-btn {
+            background: var(--color-surface);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+        }
+        .dismiss-btn:hover {
+            background: var(--color-error);
+            color: white;
+            border-color: var(--color-error);
+        }
+        .clear-all-errors-btn {
+            background: transparent;
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .clear-all-errors-btn:hover {
+            background: var(--color-error);
+            color: white;
+            border-color: var(--color-error);
+        }
+        .upload-global-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .wipe-all-btn {
+            background: var(--color-error);
+            color: white;
+            border: 1px solid var(--color-error);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .wipe-all-btn:hover {
+            opacity: 0.9;
+        }
+        .upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .upload-title {
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 14px;
+        }
+        .upload-device {
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+        .upload-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+        }
+        .upload-rate {
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+        .upload-progress {
+            background: var(--color-surface);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .upload-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-success) 100%);
+            transition: width 0.3s ease;
+        }
+        .upload-eta {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--color-text-dim);
+            text-align: right;
+        }
+
+        /* Pending Uploads Badge & Modal */
+        .pending-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--color-primary);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .pending-item {
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            border-left: 3px solid var(--color-primary);
+        }
+        .pending-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .pending-item-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .pending-item-device {
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+        .pending-item-meta {
+            font-size: 12px;
+            color: var(--color-text-dim);
+            margin-top: 4px;
+        }
+        .pending-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .pending-cancel-btn {
+            background: transparent;
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .pending-cancel-btn:hover {
+            background: var(--color-error);
+            color: white;
+            border-color: var(--color-error);
+        }
+        .pending-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--color-text-muted);
+        }
+
+        .stream-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        .stream-close-btn:hover {
+            background: var(--color-error);
+            color: #fff;
+        }
+        .stream-close-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .stream-player {
+            margin-top: 12px;
+        }
+        .stream-player audio {
+            display: none;
+        }
+        .custom-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .player-play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            border: none;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+        }
+        .player-play-btn:hover {
+            background: var(--color-primary-hover);
+            transform: scale(1.05);
+        }
+        .player-play-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .player-prev-btn, .player-next-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+        }
+        .player-prev-btn:hover, .player-next-btn:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+        }
+        .player-prev-btn svg, .player-next-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .player-progress-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .player-progress-bar {
+            position: relative;
+            background: var(--color-surface);
+            height: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .player-progress-bar:hover {
+            height: 10px;
+        }
+        .player-progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-warning) 100%);
+            border-radius: 4px;
+            pointer-events: none;
+            transition: width 0.1s linear;
+        }
+        .player-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--color-text-dim);
+            font-family: monospace;
+        }
+        .player-track-info {
+            font-size: 11px;
+            color: var(--color-primary);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .player-progress-bar {
+            position: relative;
+        }
+
+        /* Details Modal */
+        .details-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .details-header {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .details-cover {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            background: var(--color-surface);
+            flex-shrink: 0;
+        }
+        .details-cover-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--color-text-dim);
+            flex-shrink: 0;
+        }
+        .details-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .details-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--color-primary);
+        }
+        .details-subtitle {
+            font-size: 14px;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+        }
+        .details-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 12px;
+            font-size: 13px;
+        }
+        .details-meta-label {
+            color: var(--color-text-dim);
+        }
+        .details-meta-value {
+            color: var(--color-text);
+            word-break: break-all;
+        }
+        .details-tracks {
+            margin-top: 8px;
+        }
+        .details-tracks-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-dim);
+            margin-bottom: 8px;
+        }
+        .details-track-list {
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .details-track {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .details-track:last-child {
+            border-bottom: none;
+        }
+        .details-track-name {
+            color: var(--color-text);
+        }
+        .details-track-duration {
+            color: var(--color-text-dim);
+            font-family: monospace;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--color-text-dim);
+            grid-column: 1 / -1;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .empty-text {
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .app-footer {
+            text-align: center;
+            padding: 24px;
+            border-top: 1px solid var(--color-border);
+            margin-top: 40px;
+            color: var(--color-text-dim);
+            font-size: 11px;
+        }
+
+        /* Responsive - Tablet */
+        @media (max-width: 900px) {
+            .cover-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+            }
+            .main-content {
+                padding: 16px;
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 600px) {
+            .app-header {
+                padding: 10px 12px;
+            }
+            .header-content {
+                gap: 8px;
+            }
+            .logo span {
+                display: none;
+            }
+            .logo-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .header-spacer {
+                flex: 0 0 auto;
+                width: 8px;
+            }
+            .header-device {
+                flex: 1;
+                min-width: 0;
+            }
+            .header-device label {
+                display: none;
+            }
+            .header-device select {
+                width: 100%;
+                min-width: 0;
+                max-width: 150px;
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+            .header-actions {
+                gap: 4px;
+                flex-shrink: 0;
+            }
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+                padding: 6px;
+            }
+            .main-content {
+                padding: 12px;
+            }
+            .cover-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+            }
+            .cover-title {
+                font-size: 12px;
+            }
+            .cover-subtitle {
+                font-size: 10px;
+            }
+            .library-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .search-box {
+                flex: 1 1 100%;
+                order: -1;
+            }
+            .toggle-btn {
+                flex: 1;
+                text-align: center;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .section-header {
+                font-size: 11px;
+            }
+            .recent-grid {
+                gap: 12px;
+            }
+            .recent-card {
+                width: 80px;
+                min-width: 80px;
+            }
+            .recent-card img,
+            .recent-card .recent-placeholder {
+                width: 80px;
+                height: 80px;
+            }
+            .recent-card .recent-title {
+                font-size: 10px;
+                padding: 6px 4px;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 380px) {
+            .cover-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .header-device select {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Alert container for notifications -->
+    <div id="alertContainer" class="alert-container"></div>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">T</div>
+                <span>TeddyPlayer</span>
+            </div>
+            <div class="header-spacer"></div>
+            <div class="header-device">
+                <label>Play on:</label>
+                <select id="globalDevice"></select>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="pendingUploadsBtn" title="Pending Uploads" style="position: relative;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span id="pendingBadge" class="pending-badge" style="display: none;">0</span>
+                </button>
+                <button class="icon-btn" id="readersBtn" title="Connected Readers">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                        <line x1="6" y1="10" x2="6" y2="14"/>
+                        <line x1="18" y1="10" x2="18" y2="14"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                <div class="icon-btn" id="statusIndicator" title="TeddyCloud Status">
+                    <div class="status-dot loading"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Now Playing Section (dynamic) -->
+        <div id="nowPlayingSection" class="now-playing-section" style="display: none;">
+            <div class="section-header">
+                <span class="section-title">Now Playing</span>
+            </div>
+            <div id="nowPlayingGrid" class="now-playing-grid"></div>
+        </div>
+
+        <!-- SD Card Uploads Section (dynamic) -->
+        <div id="uploadsSection" class="uploads-section" style="display: none;">
+            <div class="section-header">
+                <span class="section-title">📤 Uploading to ESPuino SD</span>
+            </div>
+            <div id="uploadsGrid" class="uploads-grid"></div>
+        </div>
+
+        <!-- Recently Played Section -->
+        <div id="recentlyPlayedSection" class="recently-played-section" style="display: none;">
+            <div class="section-header">
+                <span class="section-title">Recently Played</span>
+                <span id="recentCount" class="section-count">0</span>
+            </div>
+            <div id="recentlyPlayedGrid" class="recently-played-grid"></div>
+        </div>
+
+        <!-- Library Controls -->
+        <div class="library-controls">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search your Tonie library...">
+            <button id="showHiddenBtn" class="toggle-btn">Show Hidden</button>
+        </div>
+
+        <!-- Cover Wall -->
+        <div id="coverWall" class="cover-grid">
+            <div class="empty-state">
+                <div class="empty-icon">...</div>
+                <div class="empty-text">Loading library...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal('settingsModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Settings</span>
+                <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">TeddyCloud URL</label>
+                <input type="text" id="settingTeddycloudUrl" class="form-input" placeholder="http://your-teddycloud-ip:80">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Server URL (for external devices)</label>
+                <input type="text" id="settingServerUrl" class="form-input" placeholder="http://your-server-ip:8754">
+                <div class="form-hint">Leave empty to auto-detect. Set explicitly if devices can't reach the server.</div>
+            </div>
+
+            <!-- Cache Settings Section -->
+            <div class="settings-section" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-border);">
+                <div class="settings-section-title" style="font-weight: 600; margin-bottom: 16px; color: var(--color-text);">Audio Cache</div>
+
+                <div class="cache-usage-container" id="cacheUsageContainer" style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="cache-usage-label" style="font-size: 13px; color: var(--color-text-muted);">
+                            <span id="cacheUsedMb">0</span> MB / <span id="cacheMaxMb">500</span> MB used
+                        </span>
+                        <span class="cache-files-label" style="font-size: 12px; color: var(--color-text-muted);">
+                            <span id="cacheFolders">0</span> Tonies (<span id="cacheFiles">0</span> tracks)
+                        </span>
+                    </div>
+                    <div class="cache-usage-bar" style="height: 8px; background: var(--color-surface); border-radius: 4px; overflow: hidden;">
+                        <div id="cacheUsageBar" class="cache-usage-fill" style="height: 100%; width: 0%; background: var(--color-primary); transition: width 0.3s ease, background 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Maximum Cache Size (MB)</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <input type="number" id="settingCacheMaxMb" class="form-input" style="width: 120px;" min="100" max="10000" step="100" placeholder="500">
+                        <button class="btn btn-secondary" onclick="clearAudioCache()" style="white-space: nowrap;">Clear Cache</button>
+                    </div>
+                    <div class="form-hint">Cached Tonies are evicted (oldest first) when limit is reached.</div>
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+                <button class="btn btn-secondary" onclick="discoverDevices()">Discover Devices</button>
+            </div>
+
+            <!-- Device Management -->
+            <div class="device-list" id="deviceList">
+                <!-- Populated by JS -->
+            </div>
+
+            <div id="settingsStatus" style="display: none; padding: 12px; border-radius: var(--radius-md); font-size: 13px; margin-top: 16px;"></div>
+        </div>
+    </div>
+
+    <!-- Readers Modal -->
+    <div id="readersModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal('readersModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Connected Readers</span>
+                <button class="modal-close" onclick="closeModal('readersModal')">&times;</button>
+            </div>
+            <div id="readersList">
+                <div class="empty-state" style="padding: 30px;">
+                    <div class="empty-text">No readers connected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Uploads Modal -->
+    <div id="pendingUploadsModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal('pendingUploadsModal')"></div>
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <span class="modal-title">Pending SD Card Uploads</span>
+                <button class="modal-close" onclick="closeModal('pendingUploadsModal')">&times;</button>
+            </div>
+            <p style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 16px;">
+                Queued uploads will resume automatically when ESPuino reconnects.
+            </p>
+            <div id="pendingUploadsList" class="pending-list">
+                <div class="pending-empty">No pending uploads</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal (Long Press) -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal('detailsModal')"></div>
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <span class="modal-title">Details</span>
+                <button class="modal-close" onclick="closeModal('detailsModal')">&times;</button>
+            </div>
+            <div id="detailsContent" class="details-content">
+                <!-- Populated by JS -->
+            </div>
+            <div class="btn-group" style="justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeModal('detailsModal')">Close</button>
+                <button class="btn btn-primary" id="detailsPlayBtn">Play</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hide Confirmation Modal -->
+    <div id="hideConfirmModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal('hideConfirmModal')"></div>
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title">Hide Item</span>
+                <button class="modal-close" onclick="closeModal('hideConfirmModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--color-text-muted);">
+                Are you sure you want to hide <strong id="hideConfirmTitle" style="color: var(--color-text);"></strong> from your library?
+            </p>
+            <p style="margin-bottom: 20px; font-size: 13px; color: var(--color-text-dim);">
+                You can restore hidden items by clicking "Show Hidden" and then clicking the eye icon on the item.
+            </p>
+            <div class="btn-group" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal('hideConfirmModal')">Cancel</button>
+                <button class="btn btn-danger" id="hideConfirmBtn">Hide</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <span id="versionInfo">Build: loading...</span>
+    </footer>
+
+    <script>
+        const API = '';
+
+        // =============================================
+        // State
+        // =============================================
+        let devicesCache = null;
+        let tagsCache = [];
+        let settingsCache = null;
+        let readersCache = [];
+        let featureFlags = { espuino_enabled: false };  // Defaults to false
+        // Preferences (loaded from server, fallback to localStorage)
+        let starredDevices = JSON.parse(localStorage.getItem('starredDevices') || '["browser|web"]');
+        let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
+        let hiddenItems = JSON.parse(localStorage.getItem('hiddenItems') || '[]');
+        let preferencesLoaded = false;
+        let showHidden = false;
+        const browserPlayers = {};  // Stores { audio, playerUI } objects
+        let lastStreamState = {};
+        const positionReporters = {};
+
+        // =============================================
+        // Preferences (server-side persistence)
+        // =============================================
+        async function loadPreferences() {
+            try {
+                const res = await fetch(`${API}/preferences`);
+                const prefs = await res.json();
+                if (prefs.recentlyPlayed) recentlyPlayed = prefs.recentlyPlayed;
+                if (prefs.hiddenItems) hiddenItems = prefs.hiddenItems;
+                if (prefs.starredDevices) starredDevices = prefs.starredDevices;
+                preferencesLoaded = true;
+                // Sync to localStorage as backup
+                localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+                localStorage.setItem('hiddenItems', JSON.stringify(hiddenItems));
+                localStorage.setItem('starredDevices', JSON.stringify(starredDevices));
+                console.log('Preferences loaded from server:', prefs);
+            } catch (e) {
+                console.warn('Failed to load preferences from server, using localStorage:', e);
+            }
+        }
+
+        async function savePreferences(key, value) {
+            // Update localStorage immediately
+            localStorage.setItem(key, JSON.stringify(value));
+            // Sync to server
+            try {
+                await fetch(`${API}/preferences`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [key]: value })
+                });
+            } catch (e) {
+                console.warn('Failed to save preferences to server:', e);
+            }
+        }
+
+        // =============================================
+        // Feature Flags
+        // =============================================
+        async function loadFeatures() {
+            try {
+                const res = await fetch(`${API}/api/features`);
+                const data = await res.json();
+                featureFlags = { ...featureFlags, ...data };
+                console.log('Feature flags loaded:', featureFlags);
+            } catch (e) {
+                console.warn('Failed to load feature flags:', e);
+            }
+        }
+
+        function applyFeatureFlags() {
+            // Hide ESPuino-related UI elements when disabled
+            if (!featureFlags.espuino_enabled) {
+                // Hide header buttons
+                const pendingBtn = document.getElementById('pendingUploadsBtn');
+                const readersBtn = document.getElementById('readersBtn');
+                if (pendingBtn) pendingBtn.style.display = 'none';
+                if (readersBtn) readersBtn.style.display = 'none';
+
+                // Uploads section is already hidden by default (display: none)
+                // It only appears when there are active uploads, which won't happen
+                // when ESPuino is disabled
+
+                console.log('ESPuino features disabled - hiding related UI elements');
+            }
+        }
+
+        // =============================================
+        // Utilities
+        // =============================================
+        function showAlert(message, type = 'error', timeout = 5000) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `${message} <span style="float:right;cursor:pointer" onclick="this.parentElement.remove()">×</span>`;
+            container.appendChild(alert);
+            if (timeout) setTimeout(() => alert.remove(), timeout);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function formatLastSeen(isoDate) {
+            if (!isoDate) return '';
+            const diffMs = Date.now() - new Date(isoDate);
+            const mins = Math.floor(diffMs / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
+
+        function getDeviceKey(type, id) {
+            return `${type}|${id}`;
+        }
+
+        function isDeviceStarred(type, id) {
+            return starredDevices.includes(getDeviceKey(type, id));
+        }
+
+        function toggleDeviceStar(type, id) {
+            const key = getDeviceKey(type, id);
+            const idx = starredDevices.indexOf(key);
+            if (idx >= 0) {
+                if (starredDevices.length > 1) {
+                    starredDevices.splice(idx, 1);
+                }
+            } else {
+                starredDevices.push(key);
+            }
+            savePreferences('starredDevices', starredDevices);
+            renderDeviceList();
+            updateGlobalDeviceDropdown();
+        }
+
+        // =============================================
+        // Hidden Items Management
+        // =============================================
+        function isItemHidden(uid) {
+            return hiddenItems.includes(uid);
+        }
+
+        function toggleHideItem(uid, event) {
+            event.stopPropagation();
+            const idx = hiddenItems.indexOf(uid);
+            if (idx >= 0) {
+                // Unhide - no confirmation needed
+                hiddenItems.splice(idx, 1);
+                savePreferences('hiddenItems', hiddenItems);
+                showAlert('Item restored to library', 'success', 2000);
+                updateShowHiddenButton();
+                renderCoverWall(tagsCache, getTcBase());
+            } else {
+                // Hide - show confirmation
+                const tag = tagsCache.find(t => t.uid === uid);
+                const title = tag ? (tag.series || tag.title || 'this item') : 'this item';
+                showHideConfirmModal(uid, title);
+            }
+        }
+
+        function confirmHideItem(uid) {
+            hiddenItems.push(uid);
+            savePreferences('hiddenItems', hiddenItems);
+            showAlert('Item hidden from library', 'success', 2000);
+            closeModal('hideConfirmModal');
+            updateShowHiddenButton();
+            renderCoverWall(tagsCache, getTcBase());
+        }
+
+        function showHideConfirmModal(uid, title) {
+            document.getElementById('hideConfirmTitle').textContent = title;
+            document.getElementById('hideConfirmBtn').onclick = () => confirmHideItem(uid);
+            openModal('hideConfirmModal');
+        }
+
+        function updateShowHiddenButton() {
+            const btn = document.getElementById('showHiddenBtn');
+            if (hiddenItems.length > 0) {
+                btn.style.display = 'block';
+                btn.textContent = showHidden ? `Hide Hidden (${hiddenItems.length})` : `Show Hidden (${hiddenItems.length})`;
+            } else {
+                btn.style.display = 'none';
+                showHidden = false;
+            }
+        }
+
+        function toggleShowHidden() {
+            showHidden = !showHidden;
+            const btn = document.getElementById('showHiddenBtn');
+            btn.classList.toggle('active', showHidden);
+            updateShowHiddenButton();
+            renderCoverWall(tagsCache, getTcBase());
+        }
+
+        function getTcBase() {
+            return settingsCache ? (settingsCache.teddycloud_url || '').replace(/\/web$/, '').replace(/\/$/, '') : '';
+        }
+
+        // =============================================
+        // Long Press / Details Modal
+        // =============================================
+        let longPressTimer = null;
+        let longPressTriggered = false;
+        const LONG_PRESS_DURATION = 500; // ms
+
+        function showDetailsModal(uid) {
+            const tag = tagsCache.find(t => t.uid === uid);
+            if (!tag) return;
+
+            const picture = getImageUrl(tag.picture);
+            const title = tag.series || tag.title || 'Unknown';
+            const episode = tag.episode || '';
+
+            let html = `
+                <div class="details-header">
+                    ${picture
+                        ? `<img class="details-cover" src="${picture}" onerror="this.outerHTML='<div class=\\'details-cover-placeholder\\'>🎵</div>'">`
+                        : `<div class="details-cover-placeholder">🎵</div>`
+                    }
+                    <div class="details-main">
+                        <div class="details-title">${title}</div>
+                        ${episode ? `<div class="details-subtitle">${episode}</div>` : ''}
+                    </div>
+                </div>
+                <div class="details-meta">
+                    ${tag.duration ? `<span class="details-meta-label">Duration:</span><span class="details-meta-value">${formatDuration(tag.duration)}</span>` : ''}
+                    ${tag.num_tracks ? `<span class="details-meta-label">Tracks:</span><span class="details-meta-value">${tag.num_tracks}</span>` : ''}
+                    ${tag.size_mb ? `<span class="details-meta-label">Size:</span><span class="details-meta-value">${tag.size_mb} MB</span>` : ''}
+                    ${tag.model ? `<span class="details-meta-label">Model:</span><span class="details-meta-value">${tag.model}</span>` : ''}
+                    ${tag.language ? `<span class="details-meta-label">Language:</span><span class="details-meta-value">${tag.language}</span>` : ''}
+                    <span class="details-meta-label">File:</span><span class="details-meta-value">${tag.path || tag.name || tag.uid}</span>
+                    <span class="details-meta-label">Status:</span><span class="details-meta-value">${tag.valid ? '✓ Valid' : '✗ Invalid'}</span>
+                </div>
+            `;
+
+            // Add tracks if available
+            if (tag.tracks && tag.tracks.length > 0) {
+                html += `
+                    <div class="details-tracks">
+                        <div class="details-tracks-title">Chapters (${tag.tracks.length})</div>
+                        <div class="details-track-list">
+                            ${tag.tracks.map((track, i) => `
+                                <div class="details-track">
+                                    <span class="details-track-name">${i + 1}. ${track.name || 'Chapter ' + (i + 1)}</span>
+                                    <span class="details-track-duration">${formatDuration(track.duration)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailsContent').innerHTML = html;
+            document.getElementById('detailsPlayBtn').onclick = () => {
+                closeModal('detailsModal');
+                playTonie(uid);
+            };
+            openModal('detailsModal');
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            if (mins >= 60) {
+                const hrs = Math.floor(mins / 60);
+                const remainMins = mins % 60;
+                return `${hrs}:${String(remainMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function setupLongPress(element, uid) {
+            // Touch events for mobile
+            element.addEventListener('touchstart', (e) => {
+                longPressTriggered = false;
+                longPressTimer = setTimeout(() => {
+                    longPressTriggered = true;
+                    showDetailsModal(uid);
+                    // Vibrate if supported
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }, LONG_PRESS_DURATION);
+            }, { passive: true });
+
+            element.addEventListener('touchend', () => {
+                clearTimeout(longPressTimer);
+            });
+
+            element.addEventListener('touchmove', () => {
+                clearTimeout(longPressTimer);
+            });
+
+            // Right-click for desktop
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showDetailsModal(uid);
+            });
+
+            // Prevent click if long press was triggered
+            element.addEventListener('click', (e) => {
+                if (longPressTriggered) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    longPressTriggered = false;
+                }
+            }, true);
+        }
+
+        function getImageUrl(picturePath) {
+            // Use proxy when on HTTPS to avoid mixed content issues
+            if (!picturePath) return '';
+            if (window.location.protocol === 'https:') {
+                // Add version param to bust browser cache after proxy fix
+                return `${API}/proxy/image?path=${encodeURIComponent(picturePath)}&v=2`;
+            }
+            return `${getTcBase()}${picturePath}`;
+        }
+
+        // =============================================
+        // Recently Played
+        // =============================================
+        function addToRecentlyPlayed(tag) {
+            if (!tag || !tag.uid) return;
+            recentlyPlayed = recentlyPlayed.filter(r => r.uid !== tag.uid);
+            recentlyPlayed.unshift({
+                uid: tag.uid,
+                title: tag.series || tag.title || 'Unknown',
+                episode: tag.episode || '',
+                picture: tag.picture || ''
+            });
+            recentlyPlayed = recentlyPlayed.slice(0, 12);
+            savePreferences('recentlyPlayed', recentlyPlayed);
+            renderRecentlyPlayed();
+        }
+
+        function renderRecentlyPlayed() {
+            const section = document.getElementById('recentlyPlayedSection');
+            const grid = document.getElementById('recentlyPlayedGrid');
+            const countEl = document.getElementById('recentCount');
+
+            console.log('renderRecentlyPlayed called, items:', recentlyPlayed.length, recentlyPlayed);
+
+            if (!recentlyPlayed || recentlyPlayed.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            countEl.textContent = recentlyPlayed.length;
+            console.log('Recently Played rendering', recentlyPlayed.length, 'items');
+
+            grid.innerHTML = recentlyPlayed.map(r => {
+                const picture = getImageUrl(r.picture);
+                return `
+                    <div class="recent-card" onclick="playTonie('${r.uid}')">
+                        ${picture
+                            ? `<img src="${picture}" alt="${r.title}" onerror="this.outerHTML='<div class=\\'recent-placeholder\\'>🎵</div>'">`
+                            : `<div class="recent-placeholder">🎵</div>`
+                        }
+                        <div class="recent-title">${r.title}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =============================================
+        // Health Check
+        // =============================================
+        async function checkHealth() {
+            const indicator = document.querySelector('#statusIndicator .status-dot');
+            indicator.className = 'status-dot loading';
+
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                indicator.className = data.teddycloud_connected ? 'status-dot' : 'status-dot offline';
+                indicator.title = data.teddycloud_connected ? 'TeddyCloud Connected' : 'TeddyCloud Disconnected';
+            } catch (e) {
+                indicator.className = 'status-dot offline';
+                indicator.title = 'Server Error';
+            }
+        }
+
+        // =============================================
+        // Global Device Dropdown
+        // =============================================
+        function updateGlobalDeviceDropdown() {
+            const select = document.getElementById('globalDevice');
+            if (!devicesCache) return;
+
+            const options = [];
+            starredDevices.forEach(key => {
+                const [type, id] = key.split('|');
+                if (type === 'browser') {
+                    options.push({ label: 'Browser', value: key });
+                } else if (type === 'sonos') {
+                    const dev = (devicesCache.sonos || []).find(d => d.ip === id);
+                    if (dev) options.push({ label: `Sonos: ${dev.name}`, value: key });
+                } else if (type === 'airplay') {
+                    const dev = (devicesCache.airplay || []).find(d => (d.id || d.ip) === id);
+                    if (dev) options.push({ label: `AirPlay: ${dev.name}`, value: key });
+                } else if (type === 'chromecast') {
+                    const dev = (devicesCache.chromecast || []).find(d => (d.id || d.ip) === id);
+                    if (dev) options.push({ label: `Chromecast: ${dev.name}`, value: key });
+                } else if (type === 'espuino' && featureFlags.espuino_enabled) {
+                    const dev = (devicesCache.espuino || []).find(d => d.ip === id);
+                    if (dev) options.push({ label: `ESPuino: ${dev.name}`, value: key });
+                }
+            });
+
+            if (!options.some(o => o.value === 'browser|web')) {
+                options.unshift({ label: 'Browser', value: 'browser|web' });
+            }
+
+            select.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+
+            const lastDevice = localStorage.getItem('lastDevice') || 'browser|web';
+            if (options.some(o => o.value === lastDevice)) {
+                select.value = lastDevice;
+            }
+        }
+
+        // =============================================
+        // Load Devices
+        // =============================================
+        async function loadDevices() {
+            try {
+                const res = await fetch(`${API}/devices`);
+                devicesCache = await res.json();
+                updateGlobalDeviceDropdown();
+                renderDeviceList();
+            } catch (e) {
+                console.error('Failed to load devices:', e);
+            }
+        }
+
+        function renderDeviceList() {
+            const el = document.getElementById('deviceList');
+            if (!devicesCache) {
+                el.innerHTML = '<p style="color: var(--color-text-dim);">Loading devices...</p>';
+                return;
+            }
+
+            let html = '';
+
+            html += `
+                <div class="device-section">
+                    <div class="device-section-title">Browser</div>
+                    <div class="device-item">
+                        <span class="device-star ${isDeviceStarred('browser', 'web') ? 'starred' : ''}"
+                              onclick="toggleDeviceStar('browser', 'web')">★</span>
+                        <span class="device-name">Web Audio Player</span>
+                    </div>
+                </div>
+            `;
+
+            if (devicesCache.sonos?.length > 0) {
+                html += `<div class="device-section"><div class="device-section-title">Sonos</div>`;
+                devicesCache.sonos.forEach(d => {
+                    html += `
+                        <div class="device-item">
+                            <span class="device-star ${isDeviceStarred('sonos', d.ip) ? 'starred' : ''}"
+                                  onclick="toggleDeviceStar('sonos', '${d.ip}')">★</span>
+                            <span class="device-name">${d.name}</span>
+                            <span class="device-ip">${d.ip}</span>
+                            <span class="device-remove" onclick="removeDevice('sonos', '${d.ip}')">×</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            if (devicesCache.airplay?.length > 0) {
+                html += `<div class="device-section"><div class="device-section-title">AirPlay</div>`;
+                devicesCache.airplay.forEach(d => {
+                    const devId = d.id || d.ip;
+                    html += `
+                        <div class="device-item">
+                            <span class="device-star ${isDeviceStarred('airplay', devId) ? 'starred' : ''}"
+                                  onclick="toggleDeviceStar('airplay', '${devId}')">★</span>
+                            <span class="device-name">${d.name}</span>
+                            <span class="device-ip">${d.ip || d.address || ''}</span>
+                            <span class="device-remove" onclick="removeDevice('airplay', '${devId}')">×</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            if (devicesCache.chromecast?.length > 0) {
+                html += `<div class="device-section"><div class="device-section-title">Chromecast</div>`;
+                devicesCache.chromecast.forEach(d => {
+                    const devId = d.id || d.ip;
+                    html += `
+                        <div class="device-item">
+                            <span class="device-star ${isDeviceStarred('chromecast', devId) ? 'starred' : ''}"
+                                  onclick="toggleDeviceStar('chromecast', '${devId}')">★</span>
+                            <span class="device-name">${d.name}</span>
+                            <span class="device-ip">${d.ip}</span>
+                            <span class="device-remove" onclick="removeDevice('chromecast', '${devId}')">×</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            if (featureFlags.espuino_enabled && devicesCache.espuino?.length > 0) {
+                html += `<div class="device-section"><div class="device-section-title">ESPuino</div>`;
+                devicesCache.espuino.forEach(d => {
+                    html += `
+                        <div class="device-item">
+                            <span class="device-star ${isDeviceStarred('espuino', d.ip) ? 'starred' : ''}"
+                                  onclick="toggleDeviceStar('espuino', '${d.ip}')">★</span>
+                            <span class="device-name">${d.name}</span>
+                            <span class="device-ip">${d.ip}</span>
+                            <span class="device-remove" onclick="removeDevice('espuino', '${d.ip}')">×</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            const hasAnyDevices = devicesCache.sonos?.length || devicesCache.airplay?.length ||
+                devicesCache.chromecast?.length || (featureFlags.espuino_enabled && devicesCache.espuino?.length);
+            if (!hasAnyDevices) {
+                html += `<p style="color: var(--color-text-dim); font-size: 13px; margin-top: 16px;">
+                    No network devices found. Click "Discover Devices" to scan your network.
+                </p>`;
+            }
+
+            el.innerHTML = html;
+        }
+
+        async function removeDevice(type, id) {
+            if (!confirm(`Remove this ${type} device?`)) return;
+            try {
+                await fetch(`${API}/devices/${type}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                const key = getDeviceKey(type, id);
+                const idx = starredDevices.indexOf(key);
+                if (idx >= 0) {
+                    starredDevices.splice(idx, 1);
+                    localStorage.setItem('starredDevices', JSON.stringify(starredDevices));
+                }
+                await loadDevices();
+            } catch (e) {
+                showAlert('Failed to remove device', 'error');
+            }
+        }
+
+        async function discoverDevices() {
+            showAlert('Scanning network for devices...', 'warning', 3000);
+            try {
+                await fetch(`${API}/devices/discover`, { method: 'POST' });
+                await loadDevices();
+                showAlert('Device discovery complete', 'success');
+            } catch (e) {
+                showAlert('Discovery failed: ' + e.message, 'error');
+            }
+        }
+
+        // =============================================
+        // Cover Wall (Library)
+        // =============================================
+        async function loadTags() {
+            const el = document.getElementById('coverWall');
+
+            try {
+                // Fetch TAF files from library (not tags - shows all available audio)
+                const res = await fetch(`${API}/library`);
+                const data = await res.json();
+                tagsCache = data.files || [];
+
+                // Sort by series/title, then by episode
+                tagsCache.sort((a, b) => {
+                    const titleA = (a.series || a.title || '').toLowerCase();
+                    const titleB = (b.series || b.title || '').toLowerCase();
+                    if (titleA !== titleB) return titleA.localeCompare(titleB);
+                    const epA = (a.episode || '').toLowerCase();
+                    const epB = (b.episode || '').toLowerCase();
+                    return epA.localeCompare(epB, undefined, { numeric: true });
+                });
+
+                if (!settingsCache) {
+                    const sr = await fetch(`${API}/settings`);
+                    settingsCache = await sr.json();
+                }
+
+                renderCoverWall(tagsCache, getTcBase());
+                renderRecentlyPlayed();
+                updateShowHiddenButton();
+            } catch (e) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-text">Error loading library: ${e.message}</div></div>`;
+            }
+        }
+
+        function renderCoverWall(tags, tcBase) {
+            const el = document.getElementById('coverWall');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = tags.filter(t => {
+                // Search filter
+                if (searchTerm) {
+                    const matches = (t.series || '').toLowerCase().includes(searchTerm) ||
+                                   (t.episode || '').toLowerCase().includes(searchTerm) ||
+                                   (t.title || '').toLowerCase().includes(searchTerm);
+                    if (!matches) return false;
+                }
+                // Hidden filter
+                const hidden = isItemHidden(t.uid);
+                if (hidden && !showHidden) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                el.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-text">${searchTerm ? 'No matches found' : 'No Tonies in library'}</div>
+                </div>`;
+                return;
+            }
+
+            el.innerHTML = filtered.map(t => {
+                const picture = getImageUrl(t.picture);
+                const title = t.series || t.title || 'Unknown';
+                const subtitle = t.episode || '';
+                const hidden = isItemHidden(t.uid);
+
+                return `
+                    <div class="cover-card ${hidden ? 'hidden-item' : ''}" data-uid="${t.uid}">
+                        <div class="cover-actions">
+                            <button class="cover-info-btn" onclick="event.stopPropagation(); showDetailsModal('${t.uid}')" title="Details">
+                                ℹ
+                            </button>
+                            <button class="cover-hide-btn" onclick="toggleHideItem('${t.uid}', event)" title="${hidden ? 'Restore' : 'Hide'}">
+                                ${hidden ? '👁' : '✕'}
+                            </button>
+                        </div>
+                        ${picture
+                            ? `<img class="cover-image" src="${picture}" alt="${title}" onerror="this.outerHTML='<div class=\\'cover-image-placeholder\\'>🎵</div>'">`
+                            : `<div class="cover-image-placeholder">🎵</div>`
+                        }
+                        <div class="cover-info">
+                            <div class="cover-title">${title}</div>
+                            ${subtitle ? `<div class="cover-subtitle">${subtitle}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Setup long-press and click handlers for each card
+            el.querySelectorAll('.cover-card').forEach(card => {
+                const uid = card.dataset.uid;
+                setupLongPress(card, uid);
+                card.addEventListener('click', (e) => {
+                    if (!longPressTriggered) {
+                        playTonie(uid);
+                    }
+                });
+            });
+        }
+
+        async function playTonie(uid) {
+            const deviceValue = document.getElementById('globalDevice').value;
+            const [deviceType, deviceId] = deviceValue.split('|');
+            localStorage.setItem('lastDevice', deviceValue);
+
+            const tag = tagsCache.find(t => t.uid === uid);
+            if (tag) addToRecentlyPlayed(tag);
+
+            try {
+                // Library files (uid starts with "lib:") use direct URL playback
+                if (uid.startsWith('lib:')) {
+                    const audioUrl = tag?.audio_url;
+                    if (!audioUrl) {
+                        showAlert('No audio URL for library file', 'error');
+                        return;
+                    }
+                    const title = tag?.title || tag?.series || 'Library Audio';
+                    const res = await fetch(`${API}/playback/url`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            audio_url: audioUrl,
+                            title,
+                            device_type: deviceType,
+                            device_id: deviceId
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'error') {
+                        showAlert('Playback error: ' + (data.error || 'Unknown'), 'error');
+                    }
+                } else {
+                    // Physical tag - use tonie playback endpoint
+                    const res = await fetch(`${API}/playback/tonie`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            uid,
+                            reader_ip: 'manual-stream',
+                            device_type: deviceType,
+                            device_id: deviceId
+                        })
+                    });
+                    const data = await res.json();
+                    if (!data.found && data.uid) {
+                        showAlert('Tag not found in TeddyCloud', 'error');
+                    }
+                }
+                loadActiveStreams();
+            } catch (e) {
+                showAlert('Error: ' + e.message, 'error');
+            }
+        }
+
+        // =============================================
+        // Now Playing (Active Streams)
+        // =============================================
+        async function loadActiveStreams() {
+            try {
+                const streamsRes = await fetch(`${API}/streams?_t=${Date.now()}`);
+                const streamsData = await streamsRes.json();
+
+                if (!settingsCache) {
+                    const sr = await fetch(`${API}/settings`);
+                    settingsCache = await sr.json();
+                }
+                const tcBase = getTcBase();
+
+                const streams = streamsData.streams || [];
+                const section = document.getElementById('nowPlayingSection');
+                const grid = document.getElementById('nowPlayingGrid');
+
+                const currentKeys = new Set(streams.map(s => s.reader_ip));
+                for (const ip of Object.keys(browserPlayers)) {
+                    if (!currentKeys.has(ip)) {
+                        browserPlayers[ip]?.audio?.pause();
+                        browserPlayers[ip]?.audio?.remove();
+                        browserPlayers[ip]?.playerUI?.remove();
+                        delete browserPlayers[ip];
+                        delete lastStreamState[ip];
+                        if (positionReporters[ip]) {
+                            clearInterval(positionReporters[ip]);
+                            delete positionReporters[ip];
+                        }
+                    }
+                }
+
+                if (streams.length === 0) {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = 'block';
+                    grid.innerHTML = streams.map(s => renderStreamCard(s, tcBase)).join('');
+
+                    for (const stream of streams) {
+                        setupBrowserPlayer(stream);
+                        setupDevicePlayerScrubbing(stream);
+                    }
+                }
+
+                // Handle uploads section - aggregate by ESPuino
+                const uploads = streamsData.uploads || [];
+                const uploadsSection = document.getElementById('uploadsSection');
+                const uploadsGrid = document.getElementById('uploadsGrid');
+
+                if (uploads.length === 0) {
+                    uploadsSection.style.display = 'none';
+                } else {
+                    uploadsSection.style.display = 'block';
+                    // Group uploads by ESPuino IP and render aggregated cards
+                    const grouped = aggregateUploadsByEspuino(uploads);
+                    const hasErrors = Object.values(grouped).some(g => g.errors > 0);
+                    let html = '';
+                    if (hasErrors) {
+                        html += '<div class="upload-global-actions">';
+                        html += '<button class="clear-all-errors-btn" onclick="clearAllUploadErrors()">Dismiss Errors</button>';
+                        html += '<button class="wipe-all-btn" onclick="wipeAllUploads()" style="margin-left: 8px; background: var(--color-error);">Wipe All &amp; Reset</button>';
+                        html += '</div>';
+                    }
+                    html += Object.values(grouped).map(renderAggregatedUploadCard).join('');
+                    uploadsGrid.innerHTML = html;
+                }
+            } catch (e) {
+                console.error('loadActiveStreams error:', e);
+            }
+        }
+
+        // Dismiss upload errors for a specific ESPuino
+        async function dismissUploadErrors(espuinoIp) {
+            try {
+                const response = await fetch(`/uploads?espuino_ip=${encodeURIComponent(espuinoIp)}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Cleared ${data.cleared} upload(s) for ${espuinoIp}`);
+                    pollUploadStatus();
+                }
+            } catch (error) {
+                console.error('Failed to dismiss upload errors:', error);
+            }
+        }
+
+        // Retry failed uploads for a specific ESPuino
+        async function retryFailedUploads(espuinoIp) {
+            try {
+                const response = await fetch(`/uploads/retry?espuino_ip=${encodeURIComponent(espuinoIp)}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Retrying ${data.retried} upload(s) for ${espuinoIp}`);
+                    pollUploadStatus();
+                }
+            } catch (error) {
+                console.error('Failed to retry uploads:', error);
+            }
+        }
+
+        // Clear all upload errors across all ESPuinos
+        async function clearAllUploadErrors() {
+            try {
+                const response = await fetch('/uploads', {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Cleared all ${data.cleared} upload(s)`);
+                    pollUploadStatus();
+                }
+            } catch (error) {
+                console.error('Failed to clear all uploads:', error);
+            }
+        }
+
+        // Wipe ALL upload state - both errors AND pending queue
+        // Use this to get a clean slate after failed/cancelled uploads
+        async function wipeAllUploads() {
+            try {
+                const response = await fetch('/uploads/wipe', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Wiped ${data.cleared_status} status entries, ${data.cleared_pending} pending uploads`);
+                    pollUploadStatus();
+                    loadPendingUploads();
+                }
+            } catch (error) {
+                console.error('Failed to wipe uploads:', error);
+            }
+        }
+
+        // Load and display pending uploads
+        async function loadPendingUploads() {
+            try {
+                const response = await fetch('/uploads/pending');
+                const data = await response.json();
+                const listEl = document.getElementById('pendingUploadsList');
+
+                if (!data.pending || data.pending.length === 0) {
+                    listEl.innerHTML = '<div class="pending-empty">No pending uploads</div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.pending.map(item => {
+                    const title = item.episode || item.series || 'Unknown';
+                    const subtitle = item.series && item.episode ? item.series : '';
+                    const queuedAt = item.queued_at ? new Date(item.queued_at).toLocaleString() : '';
+
+                    return `
+                        <div class="pending-item">
+                            <div class="pending-item-header">
+                                <div>
+                                    <div class="pending-item-title">${title}</div>
+                                    ${subtitle ? `<div class="pending-item-device">${subtitle}</div>` : ''}
+                                </div>
+                                <span class="pending-item-device">ESPuino ${item.espuino_ip}</span>
+                            </div>
+                            <div class="pending-item-meta">
+                                ${item.tracks_total} tracks &bull; ${item.folder_path}
+                                ${queuedAt ? `<br>Queued: ${queuedAt}` : ''}
+                            </div>
+                            <div class="pending-item-actions">
+                                <button class="pending-cancel-btn" onclick="cancelPendingUpload('${item.espuino_ip}')">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to load pending uploads:', error);
+            }
+        }
+
+        // Cancel a pending upload
+        async function cancelPendingUpload(espuinoIp) {
+            try {
+                const response = await fetch(`/uploads/pending?espuino_ip=${encodeURIComponent(espuinoIp)}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    console.log(`Cancelled pending upload for ${espuinoIp}`);
+                    loadPendingUploads();  // Refresh the list
+                    updatePendingBadge();  // Update badge count
+                }
+            } catch (error) {
+                console.error('Failed to cancel pending upload:', error);
+            }
+        }
+
+        // Update pending uploads badge
+        async function updatePendingBadge() {
+            try {
+                const response = await fetch('/uploads/pending');
+                const data = await response.json();
+                const badge = document.getElementById('pendingBadge');
+                const count = data.pending ? data.pending.length : 0;
+
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to update pending badge:', error);
+            }
+        }
+
+        // Aggregate uploads by ESPuino IP to show "Track X/Y" instead of individual cards
+        function aggregateUploadsByEspuino(uploads) {
+            const relevant = uploads.filter(u => !u.is_aux);
+            const list = relevant.length > 0 ? relevant : uploads;
+            const grouped = {};
+            for (const upload of list) {
+                const ip = upload.espuino_ip || 'unknown';
+                if (!grouped[ip]) {
+                    grouped[ip] = {
+                        espuino_ip: ip,
+                        tracks: [],
+                        uploading: null,
+                        completed: 0,
+                        errors: 0,
+                        totalBytes: 0,
+                        uploadedBytes: 0,
+                        tracks_total: 0,
+                    };
+                }
+                const g = grouped[ip];
+                g.tracks.push(upload);
+                g.totalBytes += upload.total_bytes || 0;
+                if (upload.total_tracks && upload.total_tracks > g.tracks_total) {
+                    g.tracks_total = upload.total_tracks;
+                }
+                if (upload.status === 'uploading') {
+                    g.uploading = upload;
+                    g.uploadedBytes += upload.bytes_uploaded || 0;
+                } else if (upload.status === 'complete') {
+                    g.completed++;
+                    g.uploadedBytes += upload.total_bytes || 0;
+                } else if (upload.status === 'error') {
+                    g.errors++;
+                }
+            }
+            return grouped;
+        }
+
+        function renderAggregatedUploadCard(group) {
+            const formatBytes = (bytes) => {
+                if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+                if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return bytes + ' B';
+            };
+            const formatRate = (bytesPerSec) => {
+                if (bytesPerSec >= 1024 * 1024) return (bytesPerSec / 1024 / 1024).toFixed(2) + ' MB/s';
+                if (bytesPerSec >= 1024) return (bytesPerSec / 1024).toFixed(1) + ' KB/s';
+                return bytesPerSec.toFixed(0) + ' B/s';
+            };
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const uploading = group.uploading;
+            const totalTracks = (uploading && uploading.total_tracks) ? uploading.total_tracks : (group.tracks_total || group.tracks.length);
+            let completedTracks = group.completed;
+            if (uploading && uploading.track_index && uploading.track_index > completedTracks) {
+                completedTracks = uploading.track_index - 1;
+            }
+            const currentTrack = (uploading && uploading.track_index) ? uploading.track_index : (completedTracks + 1);
+
+            let statusClass = '';
+            let statsHtml = '';
+
+            if (group.errors > 0) {
+                statusClass = 'error';
+                statsHtml = `
+                    <div class="upload-stats" style="color: var(--color-error)">✗ ${group.errors} error(s) occurred</div>
+                    <div class="upload-error-actions">
+                        <button class="retry-btn" onclick="retryFailedUploads('${group.espuino_ip}')">Retry</button>
+                        <button class="dismiss-btn" onclick="dismissUploadErrors('${group.espuino_ip}')">Dismiss</button>
+                    </div>
+                `;
+            } else if (uploading) {
+                const progress = uploading.progress || 0;
+                const overallProgress = totalTracks > 0 ? ((completedTracks + progress / 100) / totalTracks) * 100 : 0;
+                statsHtml = `
+                    <div class="upload-stats">
+                        <span>Track ${currentTrack}/${totalTracks} - ${formatBytes(group.uploadedBytes)} / ${formatBytes(group.totalBytes)}</span>
+                        <span class="upload-rate">@ ${formatRate(uploading.transfer_rate || 0)}</span>
+                    </div>
+                    <div class="upload-progress">
+                        <div class="upload-progress-bar" style="width: ${overallProgress.toFixed(0)}%"></div>
+                    </div>
+                    <div class="upload-eta">${uploading.eta_seconds ? `Est. ${formatTime(uploading.eta_seconds)} remaining for this track` : ''}</div>
+                `;
+            } else if (completedTracks === totalTracks) {
+                statusClass = 'complete';
+                statsHtml = `<div class="upload-stats"><span>✓ All ${totalTracks} tracks uploaded - ${formatBytes(group.totalBytes)}</span></div>`;
+            }
+
+            return `
+                <div class="upload-card ${statusClass}">
+                    <div class="upload-header">
+                        <span class="upload-title">Uploading to SD Card</span>
+                        <span class="upload-device">→ ESPuino ${group.espuino_ip}</span>
+                    </div>
+                    ${statsHtml}
+                </div>
+            `;
+        }
+
+        // Legacy single-upload card renderer (kept for compatibility)
+        function renderUploadCard(upload) {
+            const status = upload.status || 'unknown';
+            const bytesUploaded = upload.bytes_uploaded || 0;
+            const totalBytes = upload.total_bytes || 1;
+            const progress = upload.progress || 0;
+            const transferRate = upload.transfer_rate || 0;
+            const etaSeconds = upload.eta_seconds || 0;
+            const title = upload.title || upload.filename || 'Unknown';
+            const espuinoIp = upload.espuino_ip || 'Unknown';
+
+            // Format bytes
+            const formatBytes = (bytes) => {
+                if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+                if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return bytes + ' B';
+            };
+
+            // Format rate
+            const formatRate = (bytesPerSec) => {
+                if (bytesPerSec >= 1024 * 1024) return (bytesPerSec / 1024 / 1024).toFixed(2) + ' MB/s';
+                if (bytesPerSec >= 1024) return (bytesPerSec / 1024).toFixed(1) + ' KB/s';
+                return bytesPerSec.toFixed(0) + ' B/s';
+            };
+
+            // Format time
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            let statusClass = '';
+            if (status === 'complete') statusClass = 'complete';
+            else if (status === 'error') statusClass = 'error';
+
+            let statsHtml = '';
+            if (status === 'uploading') {
+                statsHtml = `
+                    <div class="upload-stats">
+                        <span>${formatBytes(bytesUploaded)} / ${formatBytes(totalBytes)}</span>
+                        <span class="upload-rate">@ ${formatRate(transferRate)}</span>
+                    </div>
+                    <div class="upload-progress">
+                        <div class="upload-progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="upload-eta">Est. ${formatTime(etaSeconds)} remaining</div>
+                `;
+            } else if (status === 'complete') {
+                statsHtml = `<div class="upload-stats"><span>✓ Upload complete - ${formatBytes(totalBytes)}</span></div>`;
+            } else if (status === 'error') {
+                statsHtml = `<div class="upload-stats" style="color: var(--color-error)">✗ Error: ${upload.error || 'Unknown'}</div>`;
+            }
+
+            return `
+                <div class="upload-card ${statusClass}">
+                    <div class="upload-header">
+                        <span class="upload-title">${title}</span>
+                        <span class="upload-device">→ ESPuino ${espuinoIp}</span>
+                    </div>
+                    ${statsHtml}
+                </div>
+            `;
+        }
+
+        // Store current stream data for device scrubbing
+        const deviceStreamData = {};
+
+        function setupDevicePlayerScrubbing(stream) {
+            const device = stream.device || {};
+            if (device.type === 'browser') return;
+
+            const readerIp = stream.reader_ip;
+            const transport = stream.transport || {};
+            deviceStreamData[readerIp] = { duration: transport.duration || 0 };
+        }
+
+        // Global device scrubbing state (uses event delegation)
+        let deviceDragState = null;
+
+        function initDeviceScrubbing() {
+            const grid = document.getElementById('activeStreamsGrid');
+            if (!grid || grid.dataset.scrubInit) return;
+            grid.dataset.scrubInit = 'true';
+
+            grid.addEventListener('mousedown', (e) => {
+                const progressBar = e.target.closest('.player-progress-bar[id^="device-progress-"]');
+                if (!progressBar) return;
+
+                const readerIp = progressBar.id.replace('device-progress-', '');
+                const duration = deviceStreamData[readerIp]?.duration || 0;
+                if (!duration) return;
+
+                const rect = progressBar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                const progressFill = progressBar.querySelector('.player-progress-fill');
+
+                // Create preview tooltip
+                let preview = progressBar.querySelector('.scrub-preview');
+                if (!preview) {
+                    preview = document.createElement('div');
+                    preview.className = 'scrub-preview';
+                    preview.style.cssText = 'position:absolute;top:-25px;background:var(--color-surface);padding:2px 6px;border-radius:4px;font-size:11px;transform:translateX(-50%);pointer-events:none;z-index:10;';
+                    progressBar.appendChild(preview);
+                }
+
+                preview.textContent = formatTime(pct * duration);
+                preview.style.left = `${pct * 100}%`;
+                preview.style.display = 'block';
+                progressFill.style.width = `${pct * 100}%`;
+
+                deviceDragState = { readerIp, duration, progressBar, progressFill, preview, pct };
+                scrubState[readerIp] = true;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!deviceDragState) return;
+                const { progressBar, progressFill, preview, duration } = deviceDragState;
+                const rect = progressBar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                deviceDragState.pct = pct;
+                preview.textContent = formatTime(pct * duration);
+                preview.style.left = `${pct * 100}%`;
+                progressFill.style.width = `${pct * 100}%`;
+            });
+
+            document.addEventListener('mouseup', async (e) => {
+                if (!deviceDragState) return;
+                const { readerIp, duration, pct, preview } = deviceDragState;
+                preview.style.display = 'none';
+                delete scrubState[readerIp];
+
+                try {
+                    await fetch(`${API}/readers/${readerIp}/playback/seek`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ position: pct * duration })
+                    });
+                    setTimeout(loadActiveStreams, 300);
+                } catch (e) {
+                    console.error('Failed to seek:', e);
+                }
+
+                deviceDragState = null;
+            });
+        }
+
+        function renderStreamCard(stream, tcBase) {
+            const tag = stream.tag || {};
+            const device = stream.device || {};
+            const encoding = stream.encoding || {};
+            const transport = stream.transport || {};  // Sonos/Chromecast state
+            const title = tag.title || tag.series || 'Unknown';
+            const picture = getImageUrl(tag.picture);
+
+            let borderClass = '';
+            if (encoding.status === 'encoding') borderClass = 'encoding';
+            else if (encoding.status === 'error') borderClass = 'error';
+
+            const deviceLabel = device.type === 'browser' ? 'Browser' :
+                               device.type === 'sonos' ? `Sonos` :
+                               device.type === 'airplay' ? `AirPlay` :
+                               device.type === 'chromecast' ? `Chromecast` : device.type;
+
+            let statusHtml = '';
+            if (encoding.status === 'encoding') {
+                const progress = Math.round(encoding.progress || 0);
+                const totalTracks = encoding.total_tracks || 1;
+                const currentTrack = encoding.current_track || 1;
+                const tracksCompleted = encoding.tracks_completed || 0;
+                const isMultiTrack = totalTracks > 1;
+
+                const statusLabel = isMultiTrack
+                    ? `Encoding track ${currentTrack}/${totalTracks}... ${progress}%`
+                    : `Caching audio... ${progress}%`;
+
+                statusHtml = `
+                    <div class="stream-encoding">
+                        <span class="encoding-label">${statusLabel}</span>
+                        <div class="stream-progress">
+                            <div class="stream-progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                        ${isMultiTrack ? `<span class="encoding-tracks">${tracksCompleted}/${totalTracks} tracks complete</span>` : ''}
+                    </div>`;
+            } else if (encoding.status === 'error') {
+                statusHtml = `<div class="stream-error">Encoding error: ${encoding.error || 'Unknown'}</div>`;
+            }
+
+            // For non-browser devices with transport state, show player controls
+            let devicePlayerHtml = '';
+            if (device.type !== 'browser' && transport && transport.state) {
+                const isPlaying = transport.state === 'playing';
+                const position = transport.position || 0;
+                const duration = transport.duration || 0;
+                const progressPct = duration > 0 ? (position / duration) * 100 : 0;
+                const tracks = tag.tracks || [];
+                const currentTrack = getCurrentTrack(tracks, position);
+                const trackInfoHtml = currentTrack ?
+                    `<div class="player-track-info">Track ${currentTrack.index}/${currentTrack.total}: ${currentTrack.name}</div>` : '';
+
+                devicePlayerHtml = `
+                    <div class="custom-player device-player" data-reader="${stream.reader_ip}" data-duration="${duration}" data-playing="${isPlaying}">
+                        <button class="player-play-btn" onclick="toggleDevicePlayback('${stream.reader_ip}', ${isPlaying})">
+                            ${isPlaying ? `
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="6" y="4" width="4" height="16"/>
+                                    <rect x="14" y="4" width="4" height="16"/>
+                                </svg>
+                            ` : `
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="6,4 20,12 6,20"/>
+                                </svg>
+                            `}
+                        </button>
+                        <div class="player-progress-container">
+                            ${trackInfoHtml}
+                            <div class="player-progress-bar" id="device-progress-${stream.reader_ip}">
+                                <div class="player-progress-fill" style="width: ${progressPct}%"></div>
+                            </div>
+                            <div class="player-time">
+                                <span>${formatTime(position)}</span>
+                                <span>${formatTime(duration)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="stream-card ${borderClass}" id="stream-${stream.reader_ip}">
+                    <button class="stream-close-btn" onclick="stopStream('${stream.reader_ip}')" title="Stop">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </button>
+                    ${picture ? `<img class="stream-cover" src="${picture}" onerror="this.style.display='none'">` : ''}
+                    <div class="stream-info">
+                        <div class="stream-title">${title}</div>
+                        <div class="stream-meta">
+                            <span class="stream-device">${deviceLabel}</span>
+                            ${stream.reader_name ? ` · ${stream.reader_name}` : ''}
+                        </div>
+                        ${statusHtml}
+                        ${devicePlayerHtml}
+                        <div id="player-container-${stream.reader_ip}" class="stream-player"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function getCurrentTrack(tracks, position) {
+            if (!tracks || !tracks.length) return null;
+            for (let i = tracks.length - 1; i >= 0; i--) {
+                if (position >= tracks[i].start) {
+                    return { ...tracks[i], index: i + 1, total: tracks.length };
+                }
+            }
+            return { ...tracks[0], index: 1, total: tracks.length };
+        }
+
+        // Drag-to-scrub state
+        const scrubState = {};
+
+        function initScrubbing(progressBar, readerIp, getDuration, onSeek) {
+            let isDragging = false;
+            let previewPct = 0;
+
+            const progressFill = progressBar.querySelector('.player-progress-fill');
+
+            // Create preview indicator
+            const preview = document.createElement('div');
+            preview.className = 'scrub-preview';
+            preview.style.cssText = 'position:absolute;top:-25px;background:var(--color-surface);padding:2px 6px;border-radius:4px;font-size:11px;display:none;transform:translateX(-50%);pointer-events:none;';
+            progressBar.appendChild(preview);
+
+            const updatePreview = (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                previewPct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                const duration = getDuration();
+                if (duration) {
+                    preview.textContent = formatTime(previewPct * duration);
+                    preview.style.left = `${previewPct * 100}%`;
+                    progressFill.style.width = `${previewPct * 100}%`;
+                }
+            };
+
+            progressBar.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                preview.style.display = 'block';
+                progressBar.style.cursor = 'grabbing';
+                updatePreview(e);
+                scrubState[readerIp] = true;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) updatePreview(e);
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    isDragging = false;
+                    preview.style.display = 'none';
+                    progressBar.style.cursor = 'pointer';
+                    delete scrubState[readerIp];
+                    const duration = getDuration();
+                    if (duration) {
+                        onSeek(previewPct * duration);
+                    }
+                }
+            });
+        }
+
+        function setupBrowserPlayer(stream) {
+            const device = stream.device || {};
+            const tag = stream.tag || {};
+            const encoding = stream.encoding || {};
+            const audioInfo = stream.audio || {};
+            let playbackUrl = audioInfo.playback_url || '';
+            const container = document.getElementById(`player-container-${stream.reader_ip}`);
+
+            // Multi-track support
+            const isMultiTrack = audioInfo.is_multi_track && audioInfo.track_urls?.length > 0;
+            let trackUrls = audioInfo.track_urls || [];
+            const trackMetadata = audioInfo.track_metadata || [];
+
+            // Convert URLs to relative when on HTTPS
+            if (window.location.protocol === 'https:') {
+                if (playbackUrl.startsWith('http://')) {
+                    const url = new URL(playbackUrl);
+                    playbackUrl = url.pathname + url.search;
+                }
+                trackUrls = trackUrls.map(u => {
+                    if (u.startsWith('http://')) {
+                        const url = new URL(u);
+                        return url.pathname + url.search;
+                    }
+                    return u;
+                });
+            }
+
+            if (device.type !== 'browser' || (!playbackUrl && !isMultiTrack) || !container) return;
+
+            const isReady = encoding.status === 'cached' || encoding.status === 'ready';
+            const existingState = lastStreamState[stream.reader_ip];
+            const wasWaiting = existingState?.waiting === true;
+            const isNewTag = existingState?.uid !== tag.uid;
+
+            if (!isReady) {
+                lastStreamState[stream.reader_ip] = { uid: tag.uid, waiting: true };
+                return;
+            }
+
+            const existingPlayer = browserPlayers[stream.reader_ip];
+            const shouldCreate = !existingPlayer || isNewTag || wasWaiting;
+
+            if (shouldCreate) {
+                if (existingPlayer) {
+                    existingPlayer.audio?.pause();
+                    existingPlayer.audio?.remove();
+                    existingPlayer.playerUI?.remove();
+                }
+                if (positionReporters[stream.reader_ip]) {
+                    clearInterval(positionReporters[stream.reader_ip]);
+                }
+
+                // Create hidden audio element
+                const audio = document.createElement('audio');
+
+                // Multi-track playlist state
+                let currentTrackIndex = 0;
+                const totalTracks = isMultiTrack ? trackUrls.length : 1;
+
+                // Set initial source
+                if (isMultiTrack && trackUrls.length > 0) {
+                    audio.src = trackUrls[0];
+                } else {
+                    audio.src = playbackUrl;
+                }
+
+                // Create custom player UI
+                const playerUI = document.createElement('div');
+                playerUI.className = 'custom-player';
+                const tracks = tag.tracks || [];
+                const showTrackNav = isMultiTrack && totalTracks > 1;
+
+                playerUI.innerHTML = `
+                    ${showTrackNav ? `
+                    <button class="player-prev-btn" title="Previous track">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <polygon points="6,6 6,18 8,18 8,6"/>
+                            <polygon points="18,6 9,12 18,18"/>
+                        </svg>
+                    </button>
+                    ` : ''}
+                    <button class="player-play-btn" data-playing="false">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="play-icon">
+                            <polygon points="6,4 20,12 6,20"/>
+                        </svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="pause-icon" style="display:none">
+                            <rect x="6" y="4" width="4" height="16"/>
+                            <rect x="14" y="4" width="4" height="16"/>
+                        </svg>
+                    </button>
+                    ${showTrackNav ? `
+                    <button class="player-next-btn" title="Next track">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <polygon points="6,6 15,12 6,18"/>
+                            <polygon points="16,6 16,18 18,18 18,6"/>
+                        </svg>
+                    </button>
+                    ` : ''}
+                    <div class="player-progress-container">
+                        ${(isMultiTrack || tracks.length > 0) ? '<div class="player-track-info"></div>' : ''}
+                        <div class="player-progress-bar">
+                            <div class="player-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="player-time">
+                            <span class="current-time">0:00</span>
+                            <span class="total-time">0:00</span>
+                        </div>
+                    </div>
+                `;
+
+                const playBtn = playerUI.querySelector('.player-play-btn');
+                const playIcon = playerUI.querySelector('.play-icon');
+                const pauseIcon = playerUI.querySelector('.pause-icon');
+                const progressBar = playerUI.querySelector('.player-progress-bar');
+                const progressFill = playerUI.querySelector('.player-progress-fill');
+                const currentTimeEl = playerUI.querySelector('.current-time');
+                const totalTimeEl = playerUI.querySelector('.total-time');
+                const trackInfoEl = playerUI.querySelector('.player-track-info');
+
+                // Play/pause toggle
+                playBtn.onclick = () => {
+                    if (audio.paused) {
+                        audio.play();
+                    } else {
+                        audio.pause();
+                    }
+                };
+
+                // Update play/pause button state
+                audio.onplay = () => {
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                };
+                audio.onpause = () => {
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                };
+
+                // Multi-track navigation functions
+                function updateTrackInfo() {
+                    if (!trackInfoEl) return;
+                    if (isMultiTrack) {
+                        // Use track metadata from multi-track cache
+                        const meta = trackMetadata[currentTrackIndex];
+                        const trackName = meta?.name || `Track ${currentTrackIndex + 1}`;
+                        trackInfoEl.textContent = `Track ${currentTrackIndex + 1}/${totalTracks}: ${trackName}`;
+                    } else if (tracks.length > 0) {
+                        // Legacy: Use TAF header track info
+                        const currentTrack = getCurrentTrack(tracks, audio.currentTime);
+                        if (currentTrack) {
+                            trackInfoEl.textContent = `Track ${currentTrack.index}/${currentTrack.total}: ${currentTrack.name}`;
+                        }
+                    }
+                }
+
+                function playTrack(index) {
+                    if (!isMultiTrack || index < 0 || index >= totalTracks) return;
+                    currentTrackIndex = index;
+                    audio.src = trackUrls[index];
+                    audio.play().catch(() => {});
+                    updateTrackInfo();
+                }
+
+                function nextTrack() {
+                    if (currentTrackIndex < totalTracks - 1) {
+                        playTrack(currentTrackIndex + 1);
+                    }
+                }
+
+                function prevTrack() {
+                    // If more than 3 seconds into track, restart current track
+                    if (audio.currentTime > 3) {
+                        audio.currentTime = 0;
+                    } else if (currentTrackIndex > 0) {
+                        playTrack(currentTrackIndex - 1);
+                    }
+                }
+
+                // Prev/next button handlers
+                const prevBtn = playerUI.querySelector('.player-prev-btn');
+                const nextBtn = playerUI.querySelector('.player-next-btn');
+                if (prevBtn) prevBtn.onclick = prevTrack;
+                if (nextBtn) nextBtn.onclick = nextTrack;
+
+                // Auto-advance to next track when current ends
+                audio.onended = () => {
+                    if (isMultiTrack && currentTrackIndex < totalTracks - 1) {
+                        nextTrack();
+                    }
+                };
+
+                // Update progress bar, time, and track info
+                let lastTrackIndex = -1;
+                audio.ontimeupdate = () => {
+                    if (audio.duration && !scrubState[stream.reader_ip]) {
+                        const pct = (audio.currentTime / audio.duration) * 100;
+                        progressFill.style.width = `${pct}%`;
+                        currentTimeEl.textContent = formatTime(audio.currentTime);
+
+                        // Update track info for legacy single-file with TAF tracks
+                        if (!isMultiTrack && trackInfoEl && tracks.length > 0) {
+                            const currentTrack = getCurrentTrack(tracks, audio.currentTime);
+                            if (currentTrack && currentTrack.index !== lastTrackIndex) {
+                                lastTrackIndex = currentTrack.index;
+                                trackInfoEl.textContent = `Track ${currentTrack.index}/${currentTrack.total}: ${currentTrack.name}`;
+                            }
+                        }
+                    }
+                };
+
+                // Set total time when loaded
+                const startAt = tag.start_position || 0;
+                let firstLoad = true;
+                audio.onloadedmetadata = () => {
+                    totalTimeEl.textContent = formatTime(audio.duration);
+
+                    // Update track info for multi-track
+                    if (isMultiTrack) {
+                        updateTrackInfo();
+                    }
+
+                    // Only apply start position on first load
+                    if (firstLoad) {
+                        firstLoad = false;
+                        if (startAt > 0 && startAt < audio.duration && !isMultiTrack) {
+                            // For single file, seek to saved position
+                            audio.currentTime = startAt;
+                        }
+                    }
+
+                    audio.play().catch(() => {
+                        container.insertAdjacentHTML('beforeend',
+                            `<div style="color: var(--color-warning); font-size: 12px; margin-top: 5px;">
+                                Click play to start (autoplay blocked)
+                            </div>`);
+                    });
+                };
+
+                // Drag-to-scrub on progress bar
+                initScrubbing(progressBar, stream.reader_ip, () => audio.duration, (pos) => {
+                    audio.currentTime = pos;
+                });
+
+                const readerIp = stream.reader_ip;
+                const tagUid = tag.uid;
+                positionReporters[readerIp] = setInterval(() => {
+                    if (audio.currentTime > 0 && !audio.paused) {
+                        fetch(`${API}/readers/${readerIp}/position`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ uid: tagUid, position: audio.currentTime })
+                        }).catch(() => {});
+                    }
+                }, 2000);
+
+                container.appendChild(audio);
+                container.appendChild(playerUI);
+                browserPlayers[stream.reader_ip] = { audio, playerUI };
+                lastStreamState[stream.reader_ip] = { uid: tag.uid, waiting: false };
+            } else {
+                // Re-attach existing player if needed (both audio and playerUI)
+                const player = browserPlayers[stream.reader_ip];
+                if (player && !container.contains(player.audio)) {
+                    container.appendChild(player.audio);
+                    container.appendChild(player.playerUI);
+                }
+            }
+        }
+
+        async function stopStream(readerIp) {
+            if (browserPlayers[readerIp]) {
+                browserPlayers[readerIp].audio?.pause();
+                if (browserPlayers[readerIp].audio) browserPlayers[readerIp].audio.src = '';
+                delete browserPlayers[readerIp];
+                delete lastStreamState[readerIp];
+            }
+            if (positionReporters[readerIp]) {
+                clearInterval(positionReporters[readerIp]);
+                delete positionReporters[readerIp];
+            }
+            await fetch(`${API}/readers/${readerIp}/playback/stop`, { method: 'POST' });
+            loadActiveStreams();
+        }
+
+        async function toggleDevicePlayback(readerIp, isPlaying) {
+            // Toggle play/pause for Sonos/Chromecast devices
+            const endpoint = isPlaying ? 'pause' : 'play';
+            try {
+                await fetch(`${API}/readers/${readerIp}/playback/${endpoint}`, { method: 'POST' });
+                // Reload streams to get updated state
+                setTimeout(loadActiveStreams, 200);
+            } catch (e) {
+                console.error(`Failed to ${endpoint} device:`, e);
+                showAlert(`Failed to ${endpoint} playback`, 'error');
+            }
+        }
+
+        async function seekDevice(readerIp, event, duration) {
+            if (!duration) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const pct = (event.clientX - rect.left) / rect.width;
+            const position = pct * duration;
+
+            try {
+                await fetch(`${API}/readers/${readerIp}/playback/seek`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ position })
+                });
+                // Reload streams to get updated position
+                setTimeout(loadActiveStreams, 300);
+            } catch (e) {
+                console.error('Failed to seek:', e);
+                showAlert('Failed to seek', 'error');
+            }
+        }
+
+        // =============================================
+        // Readers
+        // =============================================
+        async function loadReaders() {
+            try {
+                const res = await fetch(`${API}/readers`);
+                const data = await res.json();
+                readersCache = data.readers || [];
+                renderReadersList();
+            } catch (e) {
+                console.error('Failed to load readers:', e);
+            }
+        }
+
+        function renderReadersList() {
+            const el = document.getElementById('readersList');
+
+            if (readersCache.length === 0) {
+                el.innerHTML = `<div class="empty-state" style="padding: 30px;">
+                    <div class="empty-text">No readers connected</div>
+                </div>`;
+                return;
+            }
+
+            const deviceOptions = buildDeviceOptions();
+
+            el.innerHTML = readersCache.map(r => {
+                const ago = Math.floor((Date.now() - new Date(r.last_seen)) / 1000);
+                const isOnline = r.online !== false && ago < 60;
+                const currentDev = r.device || {};
+                const selectedValue = `${currentDev.type || 'default'}|${currentDev.id || ''}`;
+
+                return `
+                    <div class="reader-item">
+                        <div class="reader-status ${isOnline ? 'online' : 'offline'}"></div>
+                        <div class="reader-info">
+                            <div class="reader-name" onclick="renameReader('${r.ip}', '${r.name.replace(/'/g, "\\'")}')">${r.name}</div>
+                            <div class="reader-meta">${r.ip} · ${formatLastSeen(r.last_seen)}</div>
+                        </div>
+                        <select class="form-select reader-device-select"
+                                onchange="setReaderDevice('${r.ip}', this.value)">
+                            ${deviceOptions.map(o => `<option value="${o.value}" ${o.value === selectedValue ? 'selected' : ''}>${o.label}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buildDeviceOptions() {
+            const options = [{ label: 'Default (global)', value: 'default|' }];
+            options.push({ label: 'Browser', value: 'browser|web' });
+
+            if (devicesCache) {
+                (devicesCache.sonos || []).forEach(d => {
+                    options.push({ label: `Sonos: ${d.name}`, value: `sonos|${d.ip}` });
+                });
+                (devicesCache.airplay || []).forEach(d => {
+                    options.push({ label: `AirPlay: ${d.name}`, value: `airplay|${d.id || d.ip}` });
+                });
+                (devicesCache.chromecast || []).forEach(d => {
+                    options.push({ label: `Chromecast: ${d.name}`, value: `chromecast|${d.id || d.ip}` });
+                });
+            }
+            return options;
+        }
+
+        async function setReaderDevice(readerIp, value) {
+            const [type, id] = value.split('|');
+            try {
+                const encodedIp = encodeURIComponent(readerIp);
+                if (type === 'default') {
+                    await fetch(`${API}/readers/${encodedIp}/device`, { method: 'DELETE' });
+                } else {
+                    await fetch(`${API}/readers/${encodedIp}/device`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type, id })
+                    });
+                }
+                showAlert('Reader device saved', 'success', 2000);
+            } catch (e) {
+                showAlert('Failed to save reader device', 'error');
+            }
+        }
+
+        async function renameReader(ip, currentName) {
+            const newName = prompt('Enter new name:', currentName);
+            if (!newName || newName === currentName) return;
+
+            try {
+                await fetch(`${API}/readers/${encodeURIComponent(ip)}/name`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                showAlert('Reader renamed', 'success', 2000);
+                loadReaders();
+            } catch (e) {
+                showAlert('Failed to rename reader', 'error');
+            }
+        }
+
+        // =============================================
+        // Settings
+        // =============================================
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API}/settings`);
+                settingsCache = await res.json();
+                document.getElementById('settingTeddycloudUrl').value = settingsCache.teddycloud_url || '';
+                document.getElementById('settingServerUrl').value = settingsCache.server_url || '';
+                document.getElementById('settingCacheMaxMb').value = settingsCache.audio_cache_max_mb || 500;
+
+                // Load cache stats
+                await loadCacheStats();
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
+        }
+
+        async function loadCacheStats() {
+            try {
+                const res = await fetch(`${API}/cache`);
+                const stats = await res.json();
+
+                const usedMb = stats.size_mb || 0;
+                const maxMb = stats.max_mb || 500;
+                const files = stats.files || 0;
+                const folders = stats.folders || 0;
+                const pct = maxMb > 0 ? Math.min(100, (usedMb / maxMb) * 100) : 0;
+
+                document.getElementById('cacheUsedMb').textContent = usedMb;
+                document.getElementById('cacheMaxMb').textContent = maxMb;
+                document.getElementById('cacheFiles').textContent = files;
+                document.getElementById('cacheFolders').textContent = folders;
+
+                const bar = document.getElementById('cacheUsageBar');
+                bar.style.width = `${pct}%`;
+
+                // Change color based on usage
+                if (pct > 90) {
+                    bar.style.background = 'var(--color-error)';
+                } else if (pct > 70) {
+                    bar.style.background = 'var(--color-warning)';
+                } else {
+                    bar.style.background = 'var(--color-primary)';
+                }
+            } catch (e) {
+                console.error('Failed to load cache stats:', e);
+            }
+        }
+
+        async function clearAudioCache() {
+            if (!confirm('Clear all cached audio files? This will require re-encoding on next play.')) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/cache`, { method: 'DELETE' });
+                const data = await res.json();
+                showAlert(`Cache cleared (${data.deleted || 0} items removed)`, 'success');
+                await loadCacheStats();
+            } catch (e) {
+                showAlert('Failed to clear cache: ' + e.message, 'error');
+            }
+        }
+
+        async function saveSettings() {
+            const statusEl = document.getElementById('settingsStatus');
+            statusEl.style.display = 'block';
+            statusEl.style.background = 'var(--color-warning-bg)';
+            statusEl.style.color = 'var(--color-warning)';
+            statusEl.textContent = 'Saving...';
+
+            try {
+                const cacheMaxMb = parseInt(document.getElementById('settingCacheMaxMb').value) || 500;
+                const res = await fetch(`${API}/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        teddycloud_url: document.getElementById('settingTeddycloudUrl').value.trim(),
+                        server_url: document.getElementById('settingServerUrl').value.trim(),
+                        audio_cache_max_mb: Math.max(100, Math.min(10000, cacheMaxMb))
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'ok') {
+                    statusEl.style.background = 'var(--color-success-bg)';
+                    statusEl.style.color = 'var(--color-success)';
+                    statusEl.textContent = 'Settings saved!';
+                    settingsCache = null;
+                    checkHealth();
+                    loadTags();
+                    loadCacheStats();  // Refresh cache display with new max
+                } else {
+                    throw new Error(JSON.stringify(data));
+                }
+
+                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+            } catch (e) {
+                statusEl.style.background = 'var(--color-error-bg)';
+                statusEl.style.color = 'var(--color-error)';
+                statusEl.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function loadVersion() {
+            try {
+                const res = await fetch(`${API}/version`);
+                const data = await res.json();
+                let buildTime = '';
+                if (data.build_time) {
+                    const dt = new Date(data.build_time);
+                    if (!Number.isNaN(dt.getTime())) {
+                        buildTime = dt.toLocaleString('de-DE', {
+                            timeZone: 'Europe/Berlin',
+                            hour12: false,
+                        });
+                    } else {
+                        buildTime = data.build_time;
+                    }
+                }
+                document.getElementById('versionInfo').textContent =
+                    `Build: ${data.commit || 'dev'}${buildTime ? ' @ ' + buildTime : ''}`;
+            } catch (e) {}
+        }
+
+        // =============================================
+        // Event Listeners
+        // =============================================
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            loadSettings();
+            openModal('settingsModal');
+        });
+
+        document.getElementById('readersBtn').addEventListener('click', () => {
+            loadReaders();
+            openModal('readersModal');
+        });
+
+        document.getElementById('pendingUploadsBtn').addEventListener('click', () => {
+            loadPendingUploads();
+            openModal('pendingUploadsModal');
+        });
+
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderCoverWall(tagsCache, getTcBase());
+        });
+
+        document.getElementById('globalDevice').addEventListener('change', (e) => {
+            localStorage.setItem('lastDevice', e.target.value);
+        });
+
+        document.getElementById('showHiddenBtn').addEventListener('click', toggleShowHidden);
+
+        // =============================================
+        // Initialize
+        // =============================================
+        async function init() {
+            console.log('Init: loading feature flags...');
+
+            // Load feature flags first to determine what UI to show
+            await loadFeatures();
+            applyFeatureFlags();
+
+            console.log('Init: loading preferences...');
+
+            // Load preferences from server first (includes recently played, hidden items, starred devices)
+            await loadPreferences();
+
+            // Initialize show hidden button state
+            updateShowHiddenButton();
+
+            await Promise.all([
+                checkHealth(),
+                loadDevices(),
+                loadSettings(),
+                loadVersion()
+            ]);
+
+            // Load tags after settings (needs tcBase for images)
+            await loadTags();
+
+            // Render recently played after preferences and settings are loaded
+            renderRecentlyPlayed();
+
+            // Update device dropdown with loaded starred devices
+            updateGlobalDeviceDropdown();
+
+            // Initialize device scrubbing event delegation
+            initDeviceScrubbing();
+
+            loadActiveStreams();
+
+            // Only load ESPuino-related data if enabled
+            if (featureFlags.espuino_enabled) {
+                updatePendingBadge();
+                // Start ESPuino-specific polling
+                setInterval(loadReaders, 5000);
+                setInterval(updatePendingBadge, 10000);
+            }
+
+            // Start general polling
+            setInterval(loadActiveStreams, 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

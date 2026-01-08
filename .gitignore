@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environment
+.env
+*.local
+
+# Firmware config (contains WiFi credentials)
+firmware/src/config.h
+
+# Server runtime config (user-specific settings, caches)
+server/config/
+
+# Internal development files (not for public release)
+HANDOVER.md
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+AGENTS.local.md
+*/AGENTS.md
+*/*/AGENTS.md
+OPEN_POINTS.md
+docs/demo/
+docs/SVELTE_REFACTOR_PLAN.md
+docs/TONIE_READER_PROJECT.md
+firmware/GHOST_READ_ISSUE.md
+firmware/MEMORY_LEAK_FIX.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.bin
+*.elf
+
+# Frontend build artifacts
+server/frontend/node_modules/
+server/frontend/dist/
+
+# Local deployment helper
+deploy.sh
+
+# Local screenshots (raw, not for public)
+screenshots/

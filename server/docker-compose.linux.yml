@@ -1,0 +1,7 @@
+# Linux override - enables host networking for mDNS/UPnP discovery
+# Usage: docker compose -f docker-compose.yml -f docker-compose.linux.yml up -d
+services:
+  tonieplayer:
+    network_mode: host
+    extra_hosts:
+      - "docker:host-gateway"

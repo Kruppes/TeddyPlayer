@@ -1,0 +1,36 @@
+services:
+  tonieplayer:
+    build:
+      context: .
+      # To build with version info, run:
+      # GIT_COMMIT=$(git rev-parse --short HEAD) BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) docker compose up -d --build
+      args:
+        BUILD_TIME: ${BUILD_TIME:-unknown}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    container_name: tonieplayer
+    network_mode: host
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - CONFIG_DIR=/app/config
+      - PORT=${PORT:-8754}
+      # ESPuino/ESP32 reader features (uploads, readers panel)
+      - ESPUINO_ENABLED=${ESPUINO_ENABLED:-true}
+    volumes:
+      # Config directory for settings.json
+      - ${CONFIG_PATH:-/docker/appdata/tonieplayer}:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8754/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Access at: http://<host-ip>:8754
+# Settings (TeddyCloud URL, etc.) configured via web UI

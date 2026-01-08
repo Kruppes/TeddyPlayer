@@ -1,0 +1,20 @@
+# Portainer Stack Template for TeddyPlayer
+# Uses pre-built image from GitHub Container Registry
+
+services:
+  teddyplayer:
+    image: ghcr.io/kruppes/teddyplayer:latest
+    network_mode: host
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - CONFIG_DIR=/app/config
+      - ESPUINO_ENABLED=false  # Set to true if using ESP32 readers
+    volumes:
+      - /docker/appdata/teddyplayer:/app/config
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+# Access at: http://<your-server-ip>:8754
+# Settings (TeddyCloud URL, etc.) are configured via the web UI
